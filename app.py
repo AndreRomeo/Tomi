@@ -269,35 +269,68 @@ Siempre:
 
         st.success("✅ Tomi respondió")
         st.markdown(texto_tomi)
+        st.session_state.ultima_respuesta = texto_tomi
+        
         st.session_state.texto_audio = ""
 
         try:
 
-                    speech_file_path = Path(
-                        "tomi_audio.mp3"
-                    )
+            speech_file_path = Path(
+                "tomi_audio.mp3"
+            )
 
-                    with client.audio.speech.with_streaming_response.create(
-                        model="gpt-4o-mini-tts",
-                        voice="onyx",
-                        input=texto_tomi
-                    ) as audio_response:
+            with client.audio.speech.with_streaming_response.create(
+                model="gpt-4o-mini-tts",
+                voice="onyx",
+                input=texto_tomi
+            ) as audio_response:
 
-                        audio_response.stream_to_file(
-                            speech_file_path
-                        )
+                audio_response.stream_to_file(
+                    speech_file_path
+                )
 
-                    with open(
-                        "tomi_audio.mp3",
-                        "rb"
-                    ) as audio_file:
+            with open(
+                "tomi_audio.mp3",
+                "rb"
+            ) as audio_file:
 
-                        st.audio(
-                            audio_file.read()
-                        )
+                st.audio(
+                    audio_file.read()
+                )
 
         except Exception as e:
 
-                    st.warning(
-                        f"No pude generar el audio: {e}"
-                    )
+            st.warning(
+                f"No pude generar el audio: {e}"
+            )
+if st.button("🎓 Practicar este tema"):
+
+    practica = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": """
+Sos Tomi.
+
+Generá ejercicios para un chico de 13 años.
+
+Creá:
+
+1. Dos preguntas de opción múltiple.
+2. Dos verdadero o falso.
+3. Una pregunta abierta.
+
+No des las respuestas todavía.
+"""
+            },
+            {
+                "role": "user",
+                "content": st.session_state.ultima_respuesta
+            }
+        ]
+    )
+
+    st.markdown(
+        practica.choices[0].message.content
+    )
